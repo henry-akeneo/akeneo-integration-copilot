@@ -116,6 +116,7 @@ def main():
         ]
         d, r, _ = run_hook(mcp_payload(tmp, [bad]))
         check("unknown attribute blocked", d == "deny" and "product_description" in r, f"got {d!r} {r!r}")
+        check("deny message lists real codes", "description" in r.replace("product_description", ""), f"got {r!r}")
 
         # --- locale on non-localizable attribute blocked ---
         bad = json.loads(json.dumps(VALID_ITEM))

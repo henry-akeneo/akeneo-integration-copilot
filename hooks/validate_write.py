@@ -175,9 +175,12 @@ def validate_item(item, schema, line_no):
     for attr_code, entries in values.items():
         attr = attributes.get(attr_code)
         if attr is None:
+            fam = families.get(family) if family else None
+            known = (fam or {}).get("attributes") or sorted(attributes)
+            more = ", …" if len(known) > 12 else ""
             errors.append(
                 f"item {line_no}: unknown attribute '{attr_code}' — "
-                "not in the fetched schema"
+                f"not in the fetched schema (real codes: {', '.join(known[:12])}{more})"
             )
             continue
         if not isinstance(entries, list):
