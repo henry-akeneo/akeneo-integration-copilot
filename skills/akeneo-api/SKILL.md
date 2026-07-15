@@ -80,12 +80,26 @@ and `data` keys:
 - `scope` is `null` unless the attribute is **scopable** (scope = channel code)
 - Sending a locale for a non-localizable attribute returns a 422 (and vice versa)
 - **Naming trap:** the raw REST API calls this key `scope`; the Akeneo MCP
-  tools call the same concept `channel`. Generated REST code must use `scope`.
+  tools **and the GraphQL API** call the same concept `channel`. Only
+  generated REST payloads use `scope`.
 - Number attribute `data` is a **string** (`"45.5"`), booleans are real
   booleans, multiselects are arrays, prices and metrics are objects — the
   shape of `data` depends on attribute type. Read
   [references/attribute-value-formats.md](references/attribute-value-formats.md)
   before constructing payloads for anything beyond plain text.
+
+## Choose the API surface first
+
+Akeneo SaaS has three surfaces: **REST** (the only one that writes),
+**GraphQL** (read-only; one query fetches a product *plus* its relations —
+family, categories, assets, reference entities — where REST needs a call
+per relation), and the **Event Platform** (react to changes instead of
+polling). Read-heavy integration → GraphQL; any writing → REST; reacting →
+events + fetch on receipt. Decision table, GraphQL essentials (auth, cost
+and depth limits, available queries), and the `channel`-not-`scope`
+naming note:
+[references/choosing-an-api-surface.md](references/choosing-an-api-surface.md).
+Rule zero applies to GraphQL queries exactly as to REST payloads.
 
 ## Reading data
 
@@ -143,7 +157,8 @@ This skill documents the well-trodden paths only: product reads/exports
 response-shaping params), structure listing (families, attributes,
 attribute options, channels, locales, categories, association types —
 page-based), product upserts (single and bulk NDJSON
-`PATCH /api/rest/v1/products-uuid`), and Event Platform semantics.
+`PATCH /api/rest/v1/products-uuid`), GraphQL essentials, and Event
+Platform semantics.
 
 For anything outside that — media files, assets, reference entities,
 measurement families, catalogs-for-apps — or any parameter you are not
