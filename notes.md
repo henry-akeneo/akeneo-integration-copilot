@@ -23,6 +23,34 @@
   env-var check writes `.akeneo-mode.json` and announces the mode, so the
   failed MCP server in `/mcp` is explained before anyone worries.
 
+## Round 1 field test (real project, live instance) — what it taught us
+
+- **Env vars are conventions, not standards.** Real project used
+  `AKENEO_BASE_URL`; plugin expected `AKENEO_API_URL` → false demo mode
+  with full credentials present. Fixed: alias accepted everywhere, banner
+  explains the mismatch.
+- **Any cached "what the env looked like" file eventually lies.** The
+  session-start mode marker got trusted over reality. Fixed: mode is now a
+  runtime function of the environment; marker demoted to hint; no marker +
+  no env = fail closed.
+- **Demo cache poisoned live mode — worst bug of the round.** Live run
+  would have schema-diffed every product against the 2-family demo
+  fixture (real PIM: 206 families / 178 attributes). Fixed: write-guard
+  refuses `source: "demo"` cache when credentials are present; agent must
+  rebuild live.
+- **Credentials live in .env files, not exported vars.** SessionStart now
+  scans shallowly for `.env` files with `AKENEO_` keys and says so;
+  scaffolded scripts get an explicit `--env-file` flag (explicit beats
+  implicit loading — consent matters).
+- **Dry-run semantics codified**: GETs allowed, zero disk writes, preview
+  output only (the first live dry-run printed a 38.9MB CSV to stdout).
+- **Demo scale hides shape problems.** 3 products × 24 columns worked;
+  2,125 × 285 was technically correct but unusable. Exports now default
+  to filter flags, and PLAN asks "export everything or filter?".
+- What held up first try at real scale: search_after pagination, 429
+  backoff, MAX_PAGES bound, DISCOVER→VERIFY catching bad codes,
+  resumable agent.
+
 ## Loom script (≤5:00)
 
 1. **0:00–0:30 — problem.** Persona: integration engineer syncing Akeneo →

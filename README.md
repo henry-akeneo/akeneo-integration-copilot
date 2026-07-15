@@ -81,6 +81,18 @@ Restart Claude Code — the session banner switches to **LIVE mode**, and the
 agent's schema discovery now hits your instance through
 [Akeneo's hosted MCP server](https://api-prd.akeneo.com/mcp/overview.html).
 
+Notes:
+
+- `AKENEO_BASE_URL` is accepted as an alias for `AKENEO_API_URL` by the
+  hooks and scaffolded scripts (the MCP server config itself reads
+  `AKENEO_API_URL`; the session banner tells you if only the alias is set).
+- Credentials sitting in an un-exported `.env` file don't count — but the
+  session banner will point at any `.env` files it finds containing
+  `AKENEO_` keys, and scaffolded scripts accept `--env-file`.
+- Mode is re-checked from the environment at write time; a stale
+  session-start marker can't force demo behavior, and the write-guard
+  refuses to validate live writes against a demo-sourced schema cache.
+
 Write-guard knobs:
 
 - `AKENEO_BULK_THRESHOLD` — max items per write before blocking (default 100)

@@ -14,11 +14,20 @@ Requirements for the deliverable:
 - A single small runnable script (Python preferred unless the goal or the
   project says otherwise) in the current project, plus a one-paragraph
   usage note.
-- A `--dry-run` flag that prints what would be read/written without
-  calling any write endpoint. In demo mode, dry-run should use the
-  plugin's `demo/sample-products.json` as its data source so the user
-  sees concrete output immediately.
-- Credentials from env vars only.
+- Mode decided from the environment at runtime — credentials present
+  means live, whatever `.akeneo-mode.json` says. In live mode the script
+  fetches schema from the API itself; it never validates live data
+  against a demo-sourced cache.
+- A `--dry-run` flag: GETs allowed, nothing written to disk, and output
+  as a preview (header + first rows + a summary line), never the full
+  dataset to stdout. In demo mode, dry-run uses the plugin's
+  `demo/sample-products.json` as its data source so the user sees
+  concrete output immediately.
+- For exports: filtering flags (`--families`, `--locales`, `--channel`,
+  `--attributes`) so large catalogs aren't dumped wholesale by default.
+- Credentials from env vars (`AKENEO_API_URL` or `AKENEO_BASE_URL`, plus
+  client id/secret, username, password), with an explicit `--env-file`
+  flag for projects that keep them in un-exported `.env` files.
 
 When the agent finishes, show the user: the mode it ran in (live/demo),
 the schema codes it verified, the dry-run command to try first, and — only

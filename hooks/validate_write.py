@@ -10,8 +10,14 @@ Gates two write paths:
      can't be parsed reliably, so the gate is "discovery ran first").
 
 Fail-closed policy: in live mode, product writes are blocked when
-.akeneo-schema-cache.json is missing. In demo mode the bundled
+.akeneo-schema-cache.json is missing — and blocked when the cache is
+demo-sourced (source: "demo"), since validating live data against the
+demo fixture guarantees false results. In demo mode the bundled
 demo/sample-schema.json is used as fallback schema.
+
+Mode is determined from the environment at call time (credentials present
+=> live); the .akeneo-mode.json marker is only a fallback hint, because a
+session-start snapshot of the environment can go stale.
 
 Blocking is done via PreToolUse permissionDecision JSON on stdout (exit 0).
 """
@@ -57,10 +63,31 @@ def load_json(path):
         return None
 
 
+def runtime_mode(cwd):
+    """Live/demo decided by the environment NOW; marker file is a hint only."""
+    has_url = os.environ.get("AKENEO_API_URL") or os.environ.get("AKENEO_BASE_URL")
+    others = ["AKENEO_CLIENT_ID", "AKENEO_CLIENT_SECRET", "AKENEO_USERNAME", "AKENEO_PASSWORD"]
+    if has_url and all(os.environ.get(v) for v in others):
+        return "live"
+    marker = load_json(os.path.join(cwd, ".akeneo-mode.json")) or {}
+    # Fail closed: only an explicit demo marker relaxes the guard.
+    return "demo" if marker.get("mode") == "demo" else "live"
+
+
 def load_schema(cwd, plugin_root):
     """Return (schema, error_message). Fail closed in live mode."""
+    mode = runtime_mode(cwd)
     cache_path = os.path.join(cwd, ".akeneo-schema-cache.json")
     schema = load_json(cache_path)
+    if schema is not None and mode == "live" and schema.get("source") == "demo":
+        return None, (
+            "Blocked: .akeneo-schema-cache.json is demo-sourced (source: "
+            "\"demo\") but Akeneo credentials are present, so this is a live "
+            "write. Validating live data against the demo fixture would be "
+            "meaningless. Re-run schema discovery against the live instance "
+            "(the agent's DISCOVER step rebuilds the cache with source: "
+            "\"live\")."
+        )
     if schema is not None:
         fetched = schema.get("fetched_at")
         if fetched:
@@ -78,8 +105,7 @@ def load_schema(cwd, plugin_root):
                 pass
         return schema, None
 
-    mode_marker = load_json(os.path.join(cwd, ".akeneo-mode.json")) or {}
-    if mode_marker.get("mode") == "demo" and plugin_root:
+    if mode == "demo" and plugin_root:
         demo = load_json(os.path.join(plugin_root, "demo", "sample-schema.json"))
         if demo is not None:
             return demo, None

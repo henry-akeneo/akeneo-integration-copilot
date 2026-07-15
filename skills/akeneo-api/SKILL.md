@@ -24,7 +24,10 @@ data:
 
 1. Fetch the real schema via the Akeneo MCP tools (families, attributes,
    channels, locales) — or from `demo/sample-schema.json` in this plugin
-   when running in demo mode (check `.akeneo-mode.json` in the project root).
+   when running in demo mode. Mode comes from the environment **at
+   runtime**: credentials present means live. `.akeneo-mode.json` is a
+   session-start hint only; never let a stale marker force demo behavior
+   when real credentials exist.
 2. If an attribute the task needs does not exist, **say so** — do not guess
    a code. Offer the closest real codes instead.
 
@@ -52,8 +55,13 @@ against this file and **blocks all writes when it is missing**. Format:
 }
 ```
 
-`source` is `"live"` or `"demo"`. Include `options` for select attributes and
-`metric_family`/`default_metric_unit` for metrics when available.
+`source` is `"live"` or `"demo"` — set it honestly. **A demo-sourced cache
+is only valid in demo mode**: the hook (and any script) must refuse to
+validate live data against it, and a live DISCOVER must rebuild the cache
+from the instance rather than reuse a demo one. Include `options` for
+select attributes involved in writes (skipping options is acceptable for
+read-only work, but say so) and `metric_family`/`default_metric_unit` for
+metrics when available.
 
 ## Product value structure (the #1 source of bugs)
 
@@ -115,6 +123,17 @@ and `data` keys:
   and events/webhooks delivery semantics:
   [references/errors-and-recovery.md](references/errors-and-recovery.md)
 
+## Dry-run rules (every script gets one)
+
+- `--dry-run` **may perform GETs** (schema, products) but **writes nothing
+  to disk** — not the output file, not even the schema cache.
+- Dry-run output is a **preview**: header + first N rows + a summary line
+  (counts, size estimate) — never the full dataset to stdout.
+- On large catalogs, surface scale before doing the work: "this catalog
+  has N families / M products — export everything or filter?" Exports
+  should carry `--families`, `--locales`, `--channel`, `--attributes`
+  flags rather than defaulting to everything.
+
 ## Checklist before presenting integration code
 
 1. Schema fetched and cached to `.akeneo-schema-cache.json`; every
@@ -125,6 +144,11 @@ and `data` keys:
    objects, multiselect arrays)
 4. Pagination via `search_after`; filtering done server-side
 5. Bulk write line-results parsed; batching (~100) and 429 backoff present
-6. A dry-run mode exists so the user can validate before touching real data
-7. Secrets read from env vars (`AKENEO_API_URL`, `AKENEO_CLIENT_ID`,
-   `AKENEO_CLIENT_SECRET`, `AKENEO_USERNAME`, `AKENEO_PASSWORD`), never hardcoded
+6. A dry-run mode exists (per the dry-run rules above) so the user can
+   validate before touching real data
+7. Secrets read from env vars (`AKENEO_API_URL` — alias `AKENEO_BASE_URL`
+   — plus `AKENEO_CLIENT_ID`, `AKENEO_CLIENT_SECRET`, `AKENEO_USERNAME`,
+   `AKENEO_PASSWORD`), never hardcoded; `--env-file` as the explicit
+   opt-in for un-exported `.env` files
+8. Live/demo mode decided from the environment at runtime; live data is
+   never validated against a demo-sourced schema cache

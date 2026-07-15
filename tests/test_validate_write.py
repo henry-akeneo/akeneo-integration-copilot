@@ -20,8 +20,19 @@ PASS = 0
 FAIL = 0
 
 
+LIVE_ENV = {
+    "AKENEO_API_URL": "https://pim.example.com",
+    "AKENEO_CLIENT_ID": "id",
+    "AKENEO_CLIENT_SECRET": "secret",
+    "AKENEO_USERNAME": "user",
+    "AKENEO_PASSWORD": "pass",
+}
+
+
 def run_hook(payload, env_extra=None):
-    env = {**os.environ, **(env_extra or {})}
+    # Scrub ambient AKENEO_* vars so tests are deterministic on any machine.
+    env = {k: v for k, v in os.environ.items() if not k.startswith("AKENEO_")}
+    env.update(env_extra or {})
     proc = subprocess.run(
         [sys.executable, HOOK, PLUGIN_ROOT],
         input=json.dumps(payload),
@@ -56,11 +67,11 @@ def mcp_payload(cwd, items, tool="mcp__akeneo__akeneo_catalog_products_upsert"):
     return {"tool_name": tool, "tool_input": {"items": items}, "cwd": cwd}
 
 
-def write_cache(cwd):
+def write_cache(cwd, source="live"):
     src = os.path.join(PLUGIN_ROOT, "demo", "sample-schema.json")
     with open(src) as f:
         schema = json.load(f)
-    schema["source"] = "live"
+    schema["source"] = source
     schema["fetched_at"] = "2099-01-01T00:00:00Z"  # never stale in tests
     with open(os.path.join(cwd, ".akeneo-schema-cache.json"), "w") as f:
         json.dump(schema, f)
@@ -206,6 +217,46 @@ def main():
             "cwd": tmp,
         })
         check("bash GET allowed", d is None, f"got {d!r} {r!r}")
+
+        # --- runtime env wins over stale demo marker (no cache => blocked) ---
+        with open(os.path.join(tmp, ".akeneo-mode.json"), "w") as f:
+            json.dump({"mode": "demo"}, f)
+        d, r, _ = run_hook(mcp_payload(tmp, [VALID_ITEM]), env_extra=LIVE_ENV)
+        check("env creds override stale demo marker", d == "deny" and "schema cache" in r, f"got {d!r} {r!r}")
+
+        # --- demo-sourced cache refused for live writes ---
+        write_cache(tmp, source="demo")
+        d, r, _ = run_hook(mcp_payload(tmp, [VALID_ITEM]), env_extra=LIVE_ENV)
+        check("demo cache poisoning blocked in live mode", d == "deny" and "demo" in r.lower(), f"got {d!r} {r!r}")
+
+        # --- AKENEO_BASE_URL accepted as alias for AKENEO_API_URL ---
+        alias_env = {**LIVE_ENV}
+        del alias_env["AKENEO_API_URL"]
+        alias_env["AKENEO_BASE_URL"] = "https://pim.example.com"
+        d, r, _ = run_hook(mcp_payload(tmp, [VALID_ITEM]), env_extra=alias_env)
+        check("BASE_URL alias counts as live (demo cache still blocked)", d == "deny" and "demo" in r.lower(), f"got {d!r} {r!r}")
+
+        # --- live-sourced cache fine in live mode ---
+        write_cache(tmp, source="live")
+        d, r, _ = run_hook(mcp_payload(tmp, [VALID_ITEM]), env_extra=LIVE_ENV)
+        check("live cache in live mode allowed", d is None, f"got {d!r} {r!r}")
+
+        # --- demo-sourced cache fine in demo mode ---
+        write_cache(tmp, source="demo")
+        with open(os.path.join(tmp, ".akeneo-mode.json"), "w") as f:
+            json.dump({"mode": "demo"}, f)
+        d, r, _ = run_hook(mcp_payload(tmp, [VALID_ITEM]))
+        check("demo cache in demo mode allowed", d is None, f"got {d!r} {r!r}")
+        write_cache(tmp, source="live")
+
+        # --- no marker, no env: fail closed (treated as live) ---
+        os.remove(os.path.join(tmp, ".akeneo-mode.json"))
+        os.remove(os.path.join(tmp, ".akeneo-schema-cache.json"))
+        d, r, _ = run_hook(mcp_payload(tmp, [VALID_ITEM]))
+        check("no marker + no cache fails closed", d == "deny", f"got {d!r} {r!r}")
+        write_cache(tmp, source="live")
+        with open(os.path.join(tmp, ".akeneo-mode.json"), "w") as f:
+            json.dump({"mode": "live"}, f)
 
         # --- malformed stdin: allow (never crash the session) ---
         proc = subprocess.run(
