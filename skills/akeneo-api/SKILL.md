@@ -163,10 +163,16 @@ Two field-proven traps that produce no error message:
   permissions gap, not an API bug — the response is simply filtered.
   During DISCOVER, sanity-check counts against what the user expects.
 - **Writes can become drafts (EE workflows).** A PATCH from a connection
-  with edit-through-category rights "succeeds" but creates a draft
-  awaiting approval — live data is unchanged and downstream systems never
-  see it. After the first write on an EE instance, read the product back
-  and confirm the value actually landed.
+  with edit-through-category rights (rather than owner rights) "succeeds"
+  but creates a draft awaiting approval — live data is unchanged and
+  downstream systems never see it. The response cannot tell you which
+  happened, so **read-after-write**: on the first write against a new
+  instance or connection, GET the product back and confirm the value is
+  in its live values; if not, check `/products-uuid/{uuid}/draft` to
+  confirm the draft path and fix the connection's permissions. This is a
+  once-per-connection smoke test (ownership is a property of the
+  connection's user group), not a per-item check — don't double the API
+  traffic by re-reading every write.
 
 ## Errors
 

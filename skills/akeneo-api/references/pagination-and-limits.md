@@ -128,7 +128,12 @@ record edited leaves every product using it untouched, so a plain
   `SINCE LAST N DAYS`, ...).
 - Requires the **Linked entities update** option enabled per entity type
   in the PIM (System > Configuration) — with it disabled, changes to that
-  entity type are invisible to the filter. Check this during DISCOVER.
+  entity type are invisible to the filter. This is a PIM admin setting,
+  not something the API can inspect: **surface it to the integrator as an
+  option** — "if downstream needs to react to asset or reference-entity
+  changes, enable Linked entities update for those types, and this filter
+  picks them up" — rather than assuming it's on or silently falling back
+  to plain `updated`.
 - Companion property `updated_including_linked_type` (operator `IN`,
   values `asset` / `reference_entity_record`) restricts which linked
   types count.
