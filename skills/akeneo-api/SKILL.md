@@ -89,6 +89,11 @@ and `data` keys:
 
 ## Reading data
 
+- **Use the UUID product endpoints** (`/api/rest/v1/products-uuid`) — this
+  is the surface Akeneo maintains and recommends: UUIDs never change even
+  when SKUs do, and these endpoints carry response-shaping params the
+  legacy identifier endpoint lacks. `/api/rest/v1/products` (identifier)
+  exists for integrations keyed on SKU; treat it as legacy.
 - Prefer `search_after` (cursor) pagination for any export or full scan;
   page-based pagination is capped and degrades on large catalogs. Products,
   product models, assets, and reference-entity records are cursor-based;
@@ -104,10 +109,18 @@ and `data` keys:
 
 ## Writing data
 
-- Upserts are `PATCH`; the bulk endpoint accepts newline-delimited JSON
-  (`Content-Type: application/vnd.akeneo.collection+json`) and returns a
-  **per-line status** — a 200 on the request does NOT mean every product
-  succeeded. Always parse line results.
+- Upserts are `PATCH` (`/api/rest/v1/products-uuid/{uuid}` single, or bulk
+  `PATCH /api/rest/v1/products-uuid`); the bulk endpoint accepts
+  newline-delimited JSON (`Content-Type: application/vnd.akeneo.collection+json`)
+  and returns a **per-line status** — a 200 on the request does NOT mean
+  every product succeeded. Always parse line results.
+- Bulk lines support **delta category ops**: `add_categories` /
+  `remove_categories` preserve existing categories, where plain
+  `categories` replaces the whole list — prefer the delta ops in syncs.
+- `?create_missing_options` on create/update auto-creates missing select
+  options — but only for attributes with
+  `enable_option_creation_during_import` enabled; don't rely on it as a
+  substitute for verifying option codes.
 - Batch writes at ~100 items per request; never write in an unbounded loop.
 - PATCH semantics are a merge: omitted attributes are untouched, but a value
   you send **replaces all values of that attribute for that locale/scope
@@ -126,10 +139,11 @@ and `data` keys:
 ## Beyond this skill: verify endpoints, don't remember them
 
 This skill documents the well-trodden paths only: product reads/exports
-(`GET /api/rest/v1/products` with `search_after` and filters), structure
-listing (families, attributes, attribute options, channels, locales,
-categories, association types — page-based), product upserts (single and
-bulk NDJSON `PATCH /api/rest/v1/products`), and Event Platform semantics.
+(`GET /api/rest/v1/products-uuid` with `search_after`, filters, and
+response-shaping params), structure listing (families, attributes,
+attribute options, channels, locales, categories, association types —
+page-based), product upserts (single and bulk NDJSON
+`PATCH /api/rest/v1/products-uuid`), and Event Platform semantics.
 
 For anything outside that — media files, assets, reference entities,
 measurement families, catalogs-for-apps — or any parameter you are not

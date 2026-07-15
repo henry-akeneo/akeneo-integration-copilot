@@ -33,7 +33,12 @@ invent schema) and the pre-flight checklist.
    live instance.
 2. **VERIFY**: Cross-check every attribute, family, channel, and locale
    code the task requires against the fetched schema. List anything missing
-   and stop to ask rather than inventing a code.
+   and stop to ask rather than inventing a code. VERIFY covers the API
+   surface too: once per task, confirm the endpoints and parameters the
+   plan will rely on against the `akeneo_docs_*` MCP tools (or
+   api.akeneo.com in demo mode) — training knowledge can be confidently
+   stale, and the UUID endpoints often carry a `with_*` or filter param
+   that replaces a whole second pass of client-side code.
 3. **PLAN**: State the read/write flow, pagination strategy, batch sizes,
    and error handling before writing code. Sanity-check scale: if the
    catalog is large (many families/attributes), ask whether to process

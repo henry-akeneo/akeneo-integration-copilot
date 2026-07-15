@@ -37,14 +37,16 @@ cache for the real code; "cannot be localized" → set `locale: null`;
 
 ## Bulk writes: a 200 is not success
 
-The bulk product endpoint (`PATCH /api/rest/v1/products`,
+The bulk product endpoint (`PATCH /api/rest/v1/products-uuid`,
 `Content-Type: application/vnd.akeneo.collection+json`, newline-delimited
 JSON body) returns HTTP 200 with a **newline-delimited body of per-line
-results**:
+results**, keyed by `uuid` (the legacy identifier endpoint keys by
+`identifier` instead):
 
 ```
-{"line":1,"identifier":"TS-001","status_code":204}
-{"line":2,"identifier":"TS-002","status_code":422,"message":"Validation failed.","errors":[...]}
+{"line":1,"uuid":"fc24e6c3-933c-4a93-8a81-e5c703d134d5","status_code":204}
+{"line":2,"uuid":"573dd613-0c7f-4143-83d5-63cc5e535966","status_code":422,"message":"Property \"group\" does not exist."}
+{"line":3,"uuid":"25566245-55c3-42ce-86d9-8610ac459fa8","status_code":201}
 ```
 
 Always parse every line. Pattern:
@@ -53,7 +55,8 @@ Always parse every line. Pattern:
 results = [json.loads(line) for line in resp.text.strip().splitlines()]
 failed = [r for r in results if r["status_code"] >= 400]
 for f in failed:
-    log.error("line %s (%s): %s", f["line"], f.get("identifier"), f.get("message"))
+    ref = f.get("uuid") or f.get("identifier")
+    log.error("line %s (%s): %s", f["line"], ref, f.get("message"))
 ```
 
 201 = created, 204 = updated, 422 = that line failed (others still applied).

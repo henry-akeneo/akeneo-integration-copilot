@@ -10,7 +10,7 @@
 ### Cursor pagination (use for any export or full scan)
 
 ```python
-url = f"{base}/api/rest/v1/products?pagination_type=search_after&limit=100"
+url = f"{base}/api/rest/v1/products-uuid?pagination_type=search_after&limit=100"
 while url:
     resp = session.get(url).json()
     for product in resp["_embedded"]["items"]:
@@ -74,6 +74,34 @@ and attribute **codes** only support `IN` (no `CONTAINS`).
 - `scope=ecommerce` filters values to one channel; `locales=en_US,fr_FR`
   filters localizable values.
 - Combining all three routinely cuts export payload size by 80%+.
+
+## Response-shaping params on `GET /api/rest/v1/products-uuid`
+
+These exist on the UUID endpoints (mostly not on the legacy identifier
+one) and often replace a whole second integration pass — check them
+before writing enrichment code:
+
+| Param | What it does |
+|---|---|
+| `search_scope`, `search_locale` | Apply one scope/locale to every attribute filter in `search` instead of repeating it per attribute |
+| `convert_measurements=true` | Convert metric values to the channel's conversion unit (requires `scope`) — beats client-side unit math |
+| `with_attribute_options=true` | Include human-readable option labels alongside codes (`linked_data`) — saves fetching every option list |
+| `with_completenesses=true` | Per-channel/locale completeness on each product |
+| `with_quality_scores=true` | Data-quality scores per product |
+| `with_root_parent=true` | Root product-model code on each variant — saves walking the parent chain |
+| `with_asset_share_links`, `with_enabled_assets_only` | Asset-collection share URLs / filter out disabled assets |
+| `with_readiness=scores_only\|detailed` | Readiness scores (beta, request access) |
+| `with_count=true` | Total count — expensive on big catalogs; use once with `limit=1`, never per page |
+
+Each `with_*` costs response size and server time — request only what the
+integration consumes.
+
+### Filters too big for a URL
+
+`POST /api/rest/v1/products-uuid/search` accepts the same `search`,
+`scope`, `locales`, `attributes`, and `with_*` options in a JSON **body**
+— use it when a long filter (e.g. hundreds of UUIDs) would blow past URL
+length limits. Pagination params stay in the query string.
 
 ## Rate limits and backoff
 

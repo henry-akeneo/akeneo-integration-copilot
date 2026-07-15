@@ -45,7 +45,7 @@ DATA_UPSERT_RE = re.compile(
 )
 
 BASH_WRITE_RE = re.compile(
-    r"/api/rest/v1/(products|product-models|product-uuid)", re.IGNORECASE
+    r"/api/rest/v1/(products(-uuid)?|product-models)", re.IGNORECASE
 )
 BASH_WRITE_VERB_RE = re.compile(
     r"(-X\s*(PATCH|POST|PUT|DELETE)|--request\s*(PATCH|POST|PUT|DELETE)"
