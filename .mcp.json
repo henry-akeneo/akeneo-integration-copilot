@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "akeneo": {
+      "type": "http",
+      "url": "https://server.mcp.akeneo.cloud/mcp",
+      "headers": {
+        "X-Akeneo-API-URL": "${AKENEO_API_URL}",
+        "X-Akeneo-Client-ID": "${AKENEO_CLIENT_ID}",
+        "X-Akeneo-Client-Secret": "${AKENEO_CLIENT_SECRET}",
+        "X-Akeneo-Username": "${AKENEO_USERNAME}",
+        "X-Akeneo-Password": "${AKENEO_PASSWORD}"
+      }
+    }
+  }
+}

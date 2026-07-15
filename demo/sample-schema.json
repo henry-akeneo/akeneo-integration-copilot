@@ -1,0 +1,94 @@
+{
+  "fetched_at": "2026-07-15T00:00:00Z",
+  "source": "demo",
+  "locales": ["en_US", "fr_FR", "de_DE"],
+  "channels": [
+    {
+      "code": "ecommerce",
+      "locales": ["en_US", "fr_FR", "de_DE"],
+      "currencies": ["USD", "EUR"]
+    },
+    {
+      "code": "print",
+      "locales": ["en_US"],
+      "currencies": ["USD"]
+    }
+  ],
+  "families": {
+    "tshirts": {
+      "attributes": [
+        "sku",
+        "name",
+        "description",
+        "price",
+        "weight",
+        "materials",
+        "color",
+        "release_date",
+        "is_organic",
+        "main_image"
+      ],
+      "attribute_as_label": "name"
+    },
+    "mugs": {
+      "attributes": ["sku", "name", "description", "price", "weight", "main_image"],
+      "attribute_as_label": "name"
+    }
+  },
+  "attributes": {
+    "sku": {
+      "type": "pim_catalog_identifier",
+      "localizable": false,
+      "scopable": false
+    },
+    "name": {
+      "type": "pim_catalog_text",
+      "localizable": true,
+      "scopable": false
+    },
+    "description": {
+      "type": "pim_catalog_textarea",
+      "localizable": true,
+      "scopable": true
+    },
+    "price": {
+      "type": "pim_catalog_price_collection",
+      "localizable": false,
+      "scopable": true
+    },
+    "weight": {
+      "type": "pim_catalog_metric",
+      "localizable": false,
+      "scopable": false,
+      "metric_family": "Weight",
+      "default_metric_unit": "GRAM"
+    },
+    "materials": {
+      "type": "pim_catalog_multiselect",
+      "localizable": false,
+      "scopable": false,
+      "options": ["cotton", "organic_cotton", "polyester", "elastane", "wool", "linen"]
+    },
+    "color": {
+      "type": "pim_catalog_simpleselect",
+      "localizable": false,
+      "scopable": false,
+      "options": ["black", "white", "navy", "heather_grey", "forest_green"]
+    },
+    "release_date": {
+      "type": "pim_catalog_date",
+      "localizable": false,
+      "scopable": false
+    },
+    "is_organic": {
+      "type": "pim_catalog_boolean",
+      "localizable": false,
+      "scopable": false
+    },
+    "main_image": {
+      "type": "pim_catalog_image",
+      "localizable": false,
+      "scopable": false
+    }
+  }
+}

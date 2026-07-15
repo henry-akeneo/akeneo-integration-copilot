@@ -1,0 +1,16 @@
+{
+  "name": "akeneo-plugins",
+  "description": "Claude Code plugins for Akeneo PIM integration work.",
+  "owner": {
+    "name": "Henry Whelan",
+    "email": "henry.whelan@akeneo.com"
+  },
+  "plugins": [
+    {
+      "name": "akeneo-integration-copilot",
+      "source": "./",
+      "description": "Grounds Claude Code in your live Akeneo PIM instance so generated integration code matches reality, and gates writes so it can't damage product data.",
+      "version": "0.1.0"
+    }
+  ]
+}

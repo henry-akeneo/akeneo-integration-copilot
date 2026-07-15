@@ -1,0 +1,88 @@
+[
+  {
+    "identifier": "TS-001-BLK-M",
+    "enabled": true,
+    "family": "tshirts",
+    "categories": ["summer_collection"],
+    "values": {
+      "sku": [{ "locale": null, "scope": null, "data": "TS-001-BLK-M" }],
+      "name": [
+        { "locale": "en_US", "scope": null, "data": "Organic Cotton Tee" },
+        { "locale": "fr_FR", "scope": null, "data": "T-shirt en coton bio" }
+      ],
+      "description": [
+        { "locale": "en_US", "scope": "ecommerce", "data": "A soft, breathable everyday tee made from 100% organic cotton." },
+        { "locale": "fr_FR", "scope": "ecommerce", "data": "Un t-shirt doux et respirant en coton 100% biologique." },
+        { "locale": "en_US", "scope": "print", "data": "Organic cotton tee. Soft, breathable, everyday." }
+      ],
+      "price": [
+        {
+          "locale": null,
+          "scope": "ecommerce",
+          "data": [
+            { "amount": "29.99", "currency": "USD" },
+            { "amount": "27.99", "currency": "EUR" }
+          ]
+        }
+      ],
+      "weight": [{ "locale": null, "scope": null, "data": { "amount": "180", "unit": "GRAM" } }],
+      "materials": [{ "locale": null, "scope": null, "data": ["organic_cotton"] }],
+      "color": [{ "locale": null, "scope": null, "data": "black" }],
+      "release_date": [{ "locale": null, "scope": null, "data": "2026-03-01" }],
+      "is_organic": [{ "locale": null, "scope": null, "data": true }]
+    }
+  },
+  {
+    "identifier": "TS-002-NVY-L",
+    "enabled": true,
+    "family": "tshirts",
+    "categories": ["summer_collection"],
+    "values": {
+      "sku": [{ "locale": null, "scope": null, "data": "TS-002-NVY-L" }],
+      "name": [
+        { "locale": "en_US", "scope": null, "data": "Heavyweight Pocket Tee" },
+        { "locale": "fr_FR", "scope": null, "data": "T-shirt épais à poche" }
+      ],
+      "description": [
+        { "locale": "en_US", "scope": "ecommerce", "data": "A durable heavyweight tee with a chest pocket." }
+      ],
+      "price": [
+        {
+          "locale": null,
+          "scope": "ecommerce",
+          "data": [
+            { "amount": "34.99", "currency": "USD" },
+            { "amount": "32.99", "currency": "EUR" }
+          ]
+        }
+      ],
+      "weight": [{ "locale": null, "scope": null, "data": { "amount": "220", "unit": "GRAM" } }],
+      "materials": [{ "locale": null, "scope": null, "data": ["cotton", "elastane"] }],
+      "color": [{ "locale": null, "scope": null, "data": "navy" }],
+      "is_organic": [{ "locale": null, "scope": null, "data": false }]
+    }
+  },
+  {
+    "identifier": "MG-010-WHT",
+    "enabled": true,
+    "family": "mugs",
+    "categories": ["drinkware"],
+    "values": {
+      "sku": [{ "locale": null, "scope": null, "data": "MG-010-WHT" }],
+      "name": [
+        { "locale": "en_US", "scope": null, "data": "Classic Ceramic Mug 350ml" }
+      ],
+      "description": [
+        { "locale": "en_US", "scope": "ecommerce", "data": "A dishwasher-safe ceramic mug for everyday coffee." }
+      ],
+      "price": [
+        {
+          "locale": null,
+          "scope": "ecommerce",
+          "data": [{ "amount": "12.5", "currency": "USD" }]
+        }
+      ],
+      "weight": [{ "locale": null, "scope": null, "data": { "amount": "310", "unit": "GRAM" } }]
+    }
+  }
+]

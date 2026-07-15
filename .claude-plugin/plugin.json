@@ -1,0 +1,10 @@
+{
+  "name": "akeneo-integration-copilot",
+  "version": "0.1.0",
+  "description": "Grounds Claude Code in your live Akeneo PIM instance so generated integration code matches reality, and gates writes so it can't damage product data.",
+  "author": {
+    "name": "Henry Whelan",
+    "email": "henry.whelan@akeneo.com"
+  },
+  "keywords": ["akeneo", "pim", "integration", "mcp", "product-data"]
+}
