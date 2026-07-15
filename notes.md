@@ -57,6 +57,15 @@
   definition. Now blocked on live unless `AKENEO_ALLOW_STRUCTURE=1`;
   implemented as a data-tool *allowlist* so future MCP tools fail closed.
 
+- **The skill itself was confidently stale.** It documented the legacy
+  `/products` (identifier) endpoint; Henry knew `/products-uuid` is the
+  maintained surface. Refreshed the skill *from the live api.akeneo.com
+  reference* (not memory) — surfacing params the legacy endpoint lacks
+  (`with_*` enrichment, `convert_measurements`, `POST /search` for big
+  filters, delta category ops). Lesson: uncertainty-triggered doc lookups
+  miss confident wrongness, so the agent's VERIFY step now confirms
+  endpoint/param selection against the docs once per task.
+
 ## Loom script (≤5:00)
 
 1. **0:00–0:30 — problem.** Persona: integration engineer syncing Akeneo →
