@@ -100,6 +100,10 @@
 
 ## Todo before recording
 
-- [ ] Fresh-clone test in a clean container (demo mode, no credentials)
+- [x] Fresh-clone test (2026-07-15): GitHub clone → validate → 29 tests →
+      marketplace add + install into isolated CLAUDE_CONFIG_DIR → session
+      hook announces DEMO → write-guard blocks bogus attr / allows valid.
+      Found+fixed: deny message now lists real codes as README promised.
+      Not covered headlessly: a full interactive /scaffold-connector run.
 - [ ] Live-mode smoke test against sandbox instance
 - [ ] Record vanilla-Claude failure clip first (it's the hook of the video)
