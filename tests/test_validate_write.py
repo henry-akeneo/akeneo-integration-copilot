@@ -178,13 +178,34 @@ def main():
         })
         check("read tool allowed", d is None, f"got {d!r} {r!r}")
 
-        # --- non-product upserts get bulk check only ---
-        d, r, _ = run_hook(mcp_payload(
+        # --- structure upserts: allowed in demo mode (no real instance) ---
+        structure = mcp_payload(
             tmp,
             [{"code": "totally_new_attr", "type": "pim_catalog_text"}],
             tool="mcp__akeneo__akeneo_catalog_attributes_upsert",
-        ))
-        check("attribute upsert not value-validated", d is None, f"got {d!r} {r!r}")
+        )
+        d, r, _ = run_hook(structure)
+        check("structure upsert allowed in demo mode", d is None, f"got {d!r} {r!r}")
+
+        # --- structure upserts: gated on live instances ---
+        d, r, _ = run_hook(structure, env_extra=LIVE_ENV)
+        check("structure upsert blocked in live mode", d == "deny" and "structure" in r.lower(), f"got {d!r} {r!r}")
+        d, r, _ = run_hook(structure, env_extra={**LIVE_ENV, "AKENEO_ALLOW_STRUCTURE": "1"})
+        check("structure upsert allowed with AKENEO_ALLOW_STRUCTURE=1", d is None, f"got {d!r} {r!r}")
+        d, r, _ = run_hook(mcp_payload(
+            tmp,
+            [{"code": "winter", "labels": {"en_US": "Winter"}}],
+            tool="mcp__akeneo__akeneo_catalog_families_upsert",
+        ), env_extra=LIVE_ENV)
+        check("family upsert blocked in live mode", d == "deny" and "structure" in r.lower(), f"got {d!r} {r!r}")
+
+        # --- data upserts beyond products are NOT structure-gated ---
+        d, r, _ = run_hook(mcp_payload(
+            tmp,
+            [{"code": "asset_1", "values": {}}],
+            tool="mcp__akeneo__akeneo_assets_assets_upsert",
+        ), env_extra=LIVE_ENV)
+        check("asset data upsert not structure-gated (live cache present)", d is None, f"got {d!r} {r!r}")
 
         # --- Bash: Akeneo write with cache present allowed ---
         bash = {

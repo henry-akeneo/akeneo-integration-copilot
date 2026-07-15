@@ -50,6 +50,12 @@
 - What held up first try at real scale: search_after pagination, 429
   backoff, MAX_PAGES bound, DISCOVER→VERIFY catching bad codes,
   resumable agent.
+- **Structure upserts were ungated** (spotted in post-round review, not
+  the field test): `attributes_upsert`, `families_upsert`,
+  `channels_upsert` etc. mutate the *schema itself* — more dangerous than
+  a bad product write, and unvalidatable against a schema cache by
+  definition. Now blocked on live unless `AKENEO_ALLOW_STRUCTURE=1`;
+  implemented as a data-tool *allowlist* so future MCP tools fail closed.
 
 ## Loom script (≤5:00)
 

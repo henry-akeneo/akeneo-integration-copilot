@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """PreToolUse write-guard for Akeneo product data.
 
-Gates two write paths:
-  1. Akeneo MCP upsert tools (mcp__*akeneo*...upsert*): validates the
-     structured payload against the schema cache — attribute codes,
-     locale/scope combinations, select options, family codes, bulk size.
-  2. Bash commands that look like Akeneo REST writes: coarse guard —
+Gates three write paths:
+  1. Akeneo MCP product-data upserts (products / product models / assets /
+     reference-entity records): validates the structured payload against
+     the schema cache — attribute codes, locale/scope combinations, select
+     options, family codes, bulk size.
+  2. Akeneo MCP *structure* upserts (attributes, families, channels,
+     categories, ...): these mutate the schema itself — strictly more
+     dangerous than a bad product write, and payload validation against a
+     schema cache is meaningless for the thing that *defines* the schema.
+     Blocked on live instances unless AKENEO_ALLOW_STRUCTURE=1.
+  3. Bash commands that look like Akeneo REST writes: coarse guard —
      blocked unless a schema cache exists (payloads inside shell commands
      can't be parsed reliably, so the gate is "discovery ran first").
 
@@ -29,6 +35,14 @@ import time
 
 BULK_THRESHOLD = int(os.environ.get("AKENEO_BULK_THRESHOLD", "100"))
 STALE_AFTER_SECONDS = 24 * 3600
+
+# Upserts that write *data* (validated field-by-field below). Any other
+# akeneo upsert tool mutates PIM structure and is gated wholesale — this
+# is deliberately a data-allowlist, not a structure-blocklist, so tools
+# added to the MCP server later fail closed.
+DATA_UPSERT_RE = re.compile(
+    r"(products?(_models?)?|assets_assets|ref_entity_records)_upsert"
+)
 
 BASH_WRITE_RE = re.compile(
     r"/api/rest/v1/(products|product-models|product-uuid)", re.IGNORECASE
@@ -214,8 +228,32 @@ def validate_item(item, schema, line_no):
     return errors
 
 
+def check_bulk(items):
+    if len(items) > BULK_THRESHOLD and os.environ.get("AKENEO_ALLOW_BULK") != "1":
+        deny(
+            f"Blocked: bulk write of {len(items)} items exceeds the threshold "
+            f"of {BULK_THRESHOLD}. Set AKENEO_ALLOW_BULK=1 to permit, or batch "
+            "the write."
+        )
+
+
 def handle_mcp(tool_name, tool_input, cwd, plugin_root):
     if "upsert" not in tool_name:
+        allow()
+
+    if not DATA_UPSERT_RE.search(tool_name):
+        # Structure write: mutates the schema itself, so it can't be
+        # validated against the schema cache — gate it wholesale on live.
+        if runtime_mode(cwd) == "live" and os.environ.get("AKENEO_ALLOW_STRUCTURE") != "1":
+            deny(
+                f"Blocked: '{tool_name}' modifies PIM *structure* (attributes, "
+                "families, channels, categories, ...), not product data. "
+                "Structure changes on a live instance are gated: confirm with "
+                "the user, then set AKENEO_ALLOW_STRUCTURE=1 to permit for "
+                "this session. After any structure change, re-run schema "
+                "discovery — the cached schema is stale."
+            )
+        check_bulk(iter_items(tool_input))
         allow()
 
     schema, err = load_schema(cwd, plugin_root)
@@ -223,13 +261,7 @@ def handle_mcp(tool_name, tool_input, cwd, plugin_root):
         deny(err)
 
     items = iter_items(tool_input)
-
-    if len(items) > BULK_THRESHOLD and os.environ.get("AKENEO_ALLOW_BULK") != "1":
-        deny(
-            f"Blocked: bulk write of {len(items)} items exceeds the threshold "
-            f"of {BULK_THRESHOLD}. Set AKENEO_ALLOW_BULK=1 to permit, or batch "
-            "the write."
-        )
+    check_bulk(items)
 
     # Full payload validation only makes sense for product-data writes.
     if not re.search(r"products?(_models?)?_upsert", tool_name):

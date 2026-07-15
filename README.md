@@ -97,6 +97,11 @@ Write-guard knobs:
 
 - `AKENEO_BULK_THRESHOLD` — max items per write before blocking (default 100)
 - `AKENEO_ALLOW_BULK=1` — permit writes above the threshold
+- `AKENEO_ALLOW_STRUCTURE=1` — permit *structure* writes (attributes,
+  families, channels, categories, ...) on a live instance. These mutate the
+  schema itself, so they're blocked by default — payload validation can't
+  protect the thing that defines the payloads. After a structure change,
+  re-run discovery: the schema cache is stale.
 
 ## Design decisions
 

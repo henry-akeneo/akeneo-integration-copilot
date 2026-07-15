@@ -63,4 +63,10 @@ invent schema) and the pre-flight checklist.
   `AKENEO_CLIENT_SECRET`, `AKENEO_USERNAME`, `AKENEO_PASSWORD` from the
   environment, with `--env-file` as the explicit opt-in for `.env` files.
 - Prefer failing loudly with a clear schema diff over "best effort" writes.
+- Structure changes (creating/modifying attributes, families, channels,
+  categories) are a different risk class from product writes: only do them
+  when the user explicitly asked for one, confirm before executing on a
+  live instance, and re-run DISCOVER afterwards — the schema cache is
+  stale. The write-guard blocks live structure upserts unless
+  `AKENEO_ALLOW_STRUCTURE=1` is set.
 - Parse bulk line-results; never report success from the HTTP status alone.
