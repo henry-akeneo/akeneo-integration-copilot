@@ -40,7 +40,7 @@ you ──▶ /scaffold-connector "sync products to CSV"
 
 ```bash
 # 1. Add this repo as a marketplace and install the plugin
-claude plugin marketplace add <this-repo-url-or-owner/repo>
+claude plugin marketplace add henry-akeneo/akeneo-integration-copilot
 claude plugin install akeneo-integration-copilot@akeneo-plugins
 
 # 2. Start Claude Code in any project directory
