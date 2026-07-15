@@ -115,6 +115,11 @@ Rule zero applies to GraphQL queries exactly as to REST payloads.
   max 100 per page.
 - Filter server-side with the `search` query param instead of fetching all
   and filtering in code. Filter syntax and operator support vary by field.
+- For **incremental syncs**, the proven pattern is the `updated` filter
+  plus the Event Platform in combination — and know that plain `updated`
+  does not move when a *linked* asset or reference-entity record changes;
+  `updated_including_linked_entities` covers that case. Details:
+  [references/pagination-and-limits.md](references/pagination-and-limits.md)
 - Request only needed attributes with the `attributes` param on product
   endpoints to cut payload size (it filters `values` only — system
   properties like `family` and `categories` are always returned).
@@ -135,12 +140,33 @@ Rule zero applies to GraphQL queries exactly as to REST payloads.
   options — but only for attributes with
   `enable_option_creation_during_import` enabled; don't rely on it as a
   substitute for verifying option codes.
+- **Variants: the most common write bug is a value at the wrong
+  enrichment level.** Each attribute is owned by one level (root model /
+  sub model / variant) per the family variant; by default a PATCH on a
+  variant can only set variant-owned values. `?update_parent_values=true`
+  on the products-uuid PATCH lets one call update the parent model's
+  values too — use it deliberately, not as a way to avoid checking which
+  level owns the attribute.
 - Batch writes at ~100 items per request; never write in an unbounded loop.
 - PATCH semantics are a merge: omitted attributes are untouched, but a value
   you send **replaces all values of that attribute for that locale/scope
   combination**. To clear a value, send `"data": null` explicitly.
 - Respect rate limits: back off on 429 honoring `Retry-After`. Limits and
   retry patterns: [references/pagination-and-limits.md](references/pagination-and-limits.md)
+
+## Permissions fail silently (not with errors)
+
+Two field-proven traps that produce no error message:
+
+- **GETs return only what the connection's user group can see.** Missing
+  products, locales, or attribute groups in an export usually means a
+  permissions gap, not an API bug — the response is simply filtered.
+  During DISCOVER, sanity-check counts against what the user expects.
+- **Writes can become drafts (EE workflows).** A PATCH from a connection
+  with edit-through-category rights "succeeds" but creates a draft
+  awaiting approval — live data is unchanged and downstream systems never
+  see it. After the first write on an EE instance, read the product back
+  and confirm the value actually landed.
 
 ## Errors
 

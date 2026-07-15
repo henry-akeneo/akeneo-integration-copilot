@@ -58,7 +58,9 @@ instead of polling. Delivery semantics, HMAC verification, and the
 thin-event fetch-on-receipt pattern are documented in
 [errors-and-recovery.md](errors-and-recovery.md#events-and-webhooks-saas-event-platform).
 Pair it with GraphQL on receipt when the consumer needs the product plus
-its relations.
+its relations. In production, combine events with a periodic
+`updated`-filtered poll as the safety net — see "Incremental syncs" in
+[pagination-and-limits.md](pagination-and-limits.md).
 
 Full and current references: <https://api.akeneo.com/graphql/getting-started.html>
 and <https://api.akeneo.com/event-platform/overview.html>.

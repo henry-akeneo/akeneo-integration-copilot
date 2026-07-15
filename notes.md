@@ -66,6 +66,17 @@
   miss confident wrongness, so the agent's VERIFY step now confirms
   endpoint/param selection against the docs once per task.
 
+- **Domain-expert interview round.** Instead of guessing what field
+  knowledge was missing, Claude interviewed Henry with targeted probes
+  (permissions, variants, change detection, scale). Yield: silent
+  permission filtering + writes-becoming-drafts, wrong-enrichment-level
+  as the top variant bug (`update_parent_values`), the events+`updated`
+  combo with `updated_including_linked_entities` for linked-entity
+  changes, and write side effects / media as the real scale bottlenecks.
+  Every claim was then verified against the live docs before landing in
+  the skill. "The skill is your accumulated review comments" — this is
+  how you extract them.
+
 ## Loom script (≤5:00)
 
 1. **0:00–0:30 — problem.** Persona: integration engineer syncing Akeneo →

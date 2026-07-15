@@ -103,6 +103,53 @@ integration consumes.
 — use it when a long filter (e.g. hundreds of UUIDs) would blow past URL
 length limits. Pagination params stay in the query string.
 
+## Incremental syncs (change detection)
+
+The field-proven pattern for keeping a downstream system in sync is a
+**combination**: the Event Platform for low-latency reaction, plus a
+periodic `updated`-filtered poll as the safety net (events are
+at-least-once, not exactly-once — a poll catches anything missed).
+
+```json
+{"updated": [{"operator": "SINCE LAST N DAYS", "value": 1}]}
+```
+
+**The `updated` gap:** a product's `updated` timestamp does not move when
+a *linked entity* changes — an asset re-uploaded or a reference-entity
+record edited leaves every product using it untouched, so a plain
+`updated` poll silently misses changes the downstream system needs. Use
+`updated_including_linked_entities` (SaaS, EE) instead:
+
+```json
+{"updated_including_linked_entities": [{"operator": "SINCE LAST N DAYS", "value": 7}]}
+```
+
+- Same datetime operators as `updated` (`=`, `>`, `<`, `BETWEEN`,
+  `SINCE LAST N DAYS`, ...).
+- Requires the **Linked entities update** option enabled per entity type
+  in the PIM (System > Configuration) — with it disabled, changes to that
+  entity type are invisible to the filter. Check this during DISCOVER.
+- Companion property `updated_including_linked_type` (operator `IN`,
+  values `asset` / `reference_entity_record`) restricts which linked
+  types count.
+- Use datetime bounds from the *server's* responses (e.g. the max
+  `updated` seen last run), not the client clock — clock skew and writes
+  in flight during the export window cause missed or duplicated items.
+
+## Production scale notes (beyond rate limits)
+
+- **Writes have side effects**: bulk upserts trigger completeness
+  recalculation, rules, and index updates. Symptoms are writes that
+  "succeed" but appear delayed, and a PIM that slows under sustained
+  bulk writing. Keep batches ~100, pace sustained imports, and don't
+  treat write throughput as symmetric with read throughput.
+- **Media and assets are the real bottleneck** in many integrations:
+  product JSON syncs fast, but media files go through separate
+  endpoints (multipart upload / binary download) with sizes that dwarf
+  the product payloads. Plan media transfer as its own pipeline —
+  parallelism budget, resumability, and caching by checksum — rather
+  than bolting it onto the product loop.
+
 ## Rate limits and backoff
 
 - Akeneo SaaS enforces rate limits (on the order of a few requests per
