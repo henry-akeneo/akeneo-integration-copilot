@@ -123,6 +123,30 @@ and `data` keys:
   and events/webhooks delivery semantics:
   [references/errors-and-recovery.md](references/errors-and-recovery.md)
 
+## Beyond this skill: verify endpoints, don't remember them
+
+This skill documents the well-trodden paths only: product reads/exports
+(`GET /api/rest/v1/products` with `search_after` and filters), structure
+listing (families, attributes, attribute options, channels, locales,
+categories, association types — page-based), product upserts (single and
+bulk NDJSON `PATCH /api/rest/v1/products`), and Event Platform semantics.
+
+For anything outside that — media files, assets, reference entities,
+measurement families, catalogs-for-apps — or any parameter you are not
+certain still exists, do not write REST code from memory (training
+knowledge drifts behind the API):
+
+1. Prefer the `akeneo_docs_*` MCP tools (`upsert_patterns`,
+   `attribute_values`, `search_filters`, `pagination`, `workflows`) —
+   Akeneo-maintained, always current.
+2. If the MCP server is unavailable (demo mode: it requires credentials),
+   fetch the current reference from <https://api.akeneo.com/api-reference-index.html>
+   instead (WebFetch), and say in your output that the endpoint shape came
+   from the public docs, not the instance.
+
+Uncertainty about an endpoint never falls back to guessing — the same rule
+zero that applies to schema applies to the API surface.
+
 ## Dry-run rules (every script gets one)
 
 - `--dry-run` **may perform GETs** (schema, products) but **writes nothing
@@ -152,3 +176,6 @@ and `data` keys:
    opt-in for un-exported `.env` files
 8. Live/demo mode decided from the environment at runtime; live data is
    never validated against a demo-sourced schema cache
+9. Any endpoint or parameter not documented in this skill verified against
+   the `akeneo_docs_*` MCP tools (or api.akeneo.com when MCP is
+   unavailable), not written from memory
