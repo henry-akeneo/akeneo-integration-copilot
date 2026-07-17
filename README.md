@@ -1,14 +1,12 @@
 # akeneo-integration-copilot
 
-**Grounds Claude Code in your live Akeneo PIM instance so generated integration code matches reality — and gates writes so it can't damage product data.**
+**Grounds Claude Code in your live Akeneo PIM instance so generated integration code matches reality.**
 
 ## Who this is for
 
 An **integration engineer at an enterprise retailer who maintains the sync
-between Akeneo PIM and downstream systems** (storefront, ERP, marketplaces),
-and who loses hours to AI-generated integration code that references
-attribute codes that don't exist, ignores locale/channel scoping, or blows
-through rate limits.
+between Akeneo PIM and up/downstream systems** (storefront, ERP, marketplaces),
+and wants to accelerate their integration development so their code understands the product schema, and adheres to Akeneo best-practices.
 
 If you're new to this space: a PIM (Product Information Management system)
 is the source of truth for product data, and its schema — attribute codes,
