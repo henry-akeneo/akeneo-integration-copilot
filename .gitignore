@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 .env
 notes.md
+plugin_build_plan.md
