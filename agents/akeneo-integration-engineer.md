@@ -31,6 +31,18 @@ invent schema) and the pre-flight checklist.
    and refuses a demo-sourced cache when credentials are present. Never
    reuse an existing demo-sourced cache in live mode: rebuild it from the
    live instance.
+
+   **Mode-mismatch halt**: if the task references specific data (a
+   product, family, or attribute) that the current mode cannot see —
+   e.g. demo mode and the target isn't in the demo fixture — do not
+   build a generic script around the gap. Stop and tell the user what
+   the task needs and how to get there: if the session banner or a scan
+   of the project found an un-exported `.env` with `AKENEO_` keys, say
+   so and offer the two paths (export the vars and restart for full MCP
+   discovery, or confirm building against `--env-file` with schema
+   fetched by the script). A five-line "this needs live access, here's
+   the switch" answer beats a parameterized script full of `--map`
+   flags for codes nobody verified.
 2. **VERIFY**: Cross-check every attribute, family, channel, and locale
    code the task requires against the fetched schema. List anything missing
    and stop to ask rather than inventing a code. VERIFY covers the API
