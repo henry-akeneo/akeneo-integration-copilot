@@ -106,7 +106,6 @@ Write-guard knobs:
 - **Knowledge lives in the skill, not the agent prompt.** The skill is
   loadable by the main thread, this agent, or any future agent; the agent
   holds only workflow discipline (discover → verify → plan → build → prove).
-  First drafts naturally stuff API facts into the agent prompt — resist.
 - **The hook validates payloads, not strings.** The primary gate matches
   the Akeneo MCP upsert tools, whose structured input can be checked
   attribute-by-attribute against the schema cache. Bash gets a coarser
